@@ -1,17 +1,14 @@
-// Импортируем необходимые инструменты из React
 import { useState, useRef } from 'react';
-// Библиотека для удобной работы с CSS-классами
 import clsx from 'clsx';
 
-// Импортируем все нужные компоненты из нашей библиотеки
 import { ArrowButton } from 'src/ui/arrow-button'; // Кнопка-стрелка для открытия/закрытия
 import { Button } from 'src/ui/button'; // Кнопки "Применить" и "Сбросить"
 import { Select } from 'src/ui/select'; // Выпадающие списки для выбора
 import { RadioGroup } from 'src/ui/radio-group'; // Группы переключателей
-
+import { Separator } from 'src/ui/separator'; //Полоска
 import { Text } from 'src/ui/text'; // Компонент для текста с разными стилями
 
-// Импортируем все возможные варианты настроек из констант
+// Импортируем из констант
 import {
 	fontFamilyOptions, // Все доступные шрифты
 	fontSizeOptions, // Все доступные размеры текста
@@ -21,15 +18,14 @@ import {
 	defaultArticleState, // Настройки по умолчанию
 } from 'src/constants/articleProps';
 
-// Импортируем стили именно для этого компонента формы
 import styles from './ArticleParamsForm.module.scss';
 
 // Импортируем специальный хук для закрытия формы по клику вне её области
 import { useOutsideClickClose } from 'src/ui/select/hooks/useOutsideClickClose';
 
-// Описываем какие данные нужно передать в этот компонент (пропсы)
+// Описываем какие данные нужно передать в этот компонент
 type ArticleParamsFormProps = {
-	currentState: typeof defaultArticleState; // Текущие настройки статьи (из главного компонента)
+	currentState: typeof defaultArticleState; // Текущие настройки статьи
 	onApply: (newState: typeof defaultArticleState) => void; // Функция для сохранения новых настроек
 	onReset: () => void; // Функция для сброса к настройкам по умолчанию
 };
@@ -37,18 +33,17 @@ type ArticleParamsFormProps = {
 // Основной компонент формы настроек статьи
 export const ArticleParamsForm = ({
 	currentState, // Получаем текущие настройки статьи
-	onApply, // Получаем функцию для применения настроек
-	onReset, // Получаем функцию для сброса настроек
+	onApply,
+	onReset,
 }: ArticleParamsFormProps) => {
 	// Состояние для отслеживания открыта ли форма настроек
 	const [isOpen, setIsOpen] = useState(false);
 
-	// Создаем ссылку на DOM-элемент формы для отслеживания кликов вне формы
+	// Для отслеживания кликов вне формы
 	const sidebarRef = useRef<HTMLDivElement>(null);
 
 	// Создаем отдельные состояния для каждой настройки в форме
-	// Это нужно чтобы изменения в форме не сразу применялись к статье
-	// Используем currentState для начальных значений
+
 	const [selectedFont, setSelectedFont] = useState(
 		currentState.fontFamilyOption
 	);
@@ -67,7 +62,7 @@ export const ArticleParamsForm = ({
 
 	// Обработчик для кнопки "Применить"
 	const handleApply = (e: React.FormEvent) => {
-		e.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
+		e.preventDefault();
 
 		// Собираем все выбранные настройки в один объект
 		const newSettings = {
@@ -78,7 +73,7 @@ export const ArticleParamsForm = ({
 			contentWidth: selectedContentWidth,
 		};
 
-		// Передаем новые настройки в главный компонент (App)
+		// Передаем новые настройки в главный компонент
 		onApply(newSettings);
 	};
 
@@ -95,12 +90,12 @@ export const ArticleParamsForm = ({
 		onReset();
 	};
 
-	// Используем хук для закрытия формы когда пользователь кликает вне её области
+	// Используем хук для закрытия формы вне её области
 	useOutsideClickClose({
 		isOpen, // Передаем текущее состояние открытия формы
 		rootRef: sidebarRef, // Передаем ссылку на элемент формы
-		onClose: () => setIsOpen(false), // Функция для закрытия формы
-		onChange: setIsOpen, // Функция для изменения состояния открытия
+		onClose: () => setIsOpen(false),
+		onChange: setIsOpen,
 	});
 
 	// Возвращаем JSX разметку компонента
@@ -153,7 +148,9 @@ export const ArticleParamsForm = ({
 							onChange={setSelectedFontColor}
 						/>
 					</div>
-
+					<div className={styles.formItem}>
+						<Separator />
+					</div>
 					{/* Выбор цвета фона */}
 					<div className={styles.formItem}>
 						<Select
