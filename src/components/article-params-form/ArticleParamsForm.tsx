@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import clsx from 'clsx';
 
 import { ArrowButton } from 'src/ui/arrow-button'; // Кнопка-стрелка для открытия/закрытия
@@ -20,8 +20,45 @@ import {
 
 import styles from './ArticleParamsForm.module.scss';
 
-// Импортируем специальный хук для закрытия формы по клику вне её области
-import { useOutsideClickClose } from 'src/ui/select/hooks/useOutsideClickClose';
+// Интерфейс для хука использования клика вне области
+interface UseOutsideClickClose {
+	isOpen: boolean;
+	rootRef: React.RefObject<HTMLElement>;
+	onClose: () => void;
+	onChange?: (isOpen: boolean) => void;
+}
+
+// Исправленный хук для закрытия формы по клику вне её области
+const useOutsideClickClose = ({
+	isOpen,
+	rootRef,
+	onClose,
+	onChange,
+}: UseOutsideClickClose) => {
+	useEffect(() => {
+		if (!isOpen) {
+			return; // Не добавляем обработчик, если форма закрыта
+		}
+
+		const handleClick = (event: MouseEvent) => {
+			const { target } = event;
+
+			// Проверяем, что клик был вне элемента формы
+			if (target instanceof Node && !rootRef.current?.contains(target)) {
+				onClose();
+				onChange?.(false);
+			}
+		};
+
+		// Добавляем обработчик события
+		document.addEventListener('mousedown', handleClick);
+
+		// Убираем обработчик при размонтировании или изменении isOpen
+		return () => {
+			document.removeEventListener('mousedown', handleClick);
+		};
+	}, [isOpen, rootRef, onClose, onChange]); // Зависимости для эффекта
+};
 
 // Описываем какие данные нужно передать в этот компонент
 type ArticleParamsFormProps = {
@@ -37,7 +74,8 @@ export const ArticleParamsForm = ({
 	onReset,
 }: ArticleParamsFormProps) => {
 	// Состояние для отслеживания открыта ли форма настроек
-	const [isOpen, setIsOpen] = useState(false);
+	// isOpen на isFormOpen
+	const [isFormOpen, setIsFormOpen] = useState(false);
 
 	// Для отслеживания кликов вне формы
 	const sidebarRef = useRef<HTMLDivElement>(null);
@@ -92,20 +130,24 @@ export const ArticleParamsForm = ({
 
 	// Используем хук для закрытия формы вне её области
 	useOutsideClickClose({
-		isOpen, // Передаем текущее состояние открытия формы
+		isOpen: isFormOpen, // Передаем текущее состояние открытия формы
 		rootRef: sidebarRef, // Передаем ссылку на элемент формы
-		onClose: () => setIsOpen(false),
-		onChange: setIsOpen,
+		onClose: () => setIsFormOpen(false),
+		onChange: setIsFormOpen,
 	});
 
 	// Возвращаем JSX разметку компонента
 	return (
 		<div ref={sidebarRef}>
-			<ArrowButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
+			{/* isOpen на isFormOpen */}
+			<ArrowButton
+				isOpen={isFormOpen}
+				onClick={() => setIsFormOpen(!isFormOpen)}
+			/>
 
 			<aside
 				className={clsx(styles.container, {
-					[styles.container_open]: isOpen,
+					[styles.container_open]: isFormOpen,
 				})}>
 				<form
 					className={styles.form}
